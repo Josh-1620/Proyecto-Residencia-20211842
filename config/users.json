@@ -1,0 +1,18 @@
+{
+  "usuarios": [
+    {
+      "usuario": "admin",
+      "nombre": "Administrador",
+      "rol": "administrador",
+      "salt": "0a4e399632f2c3a9b85d294e0294f320",
+      "hash": "cf07b0ee07ea687a2c2ca71606c02b2202b94b1acd52e6f629450e6f151bf821"
+    },
+    {
+      "usuario": "operador1",
+      "nombre": "Operador Turno Dia",
+      "rol": "operador",
+      "salt": "df637483c114f5e7f030bbdb70350bf0",
+      "hash": "cb198a807ad9f8f75c39f2756377504b8a49211f6da9daf9a92ed0b57c56d3a4"
+    }
+  ]
+}

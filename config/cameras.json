@@ -1,0 +1,33 @@
+{
+  "camaras": [
+    {
+      "id": "cam1",
+    "nombre": "Celular",
+    "fuente": "http://192.168.1.149:4747/video",
+    "deteccion_movimiento": true,
+    "grabacion_automatica": true
+    },
+    {
+      "id": "cam2",
+      "nombre": "Patio Trasero",
+      "ip": "192.168.1.102",
+      "puerto": 554,
+      "usuario": "admin",
+      "contrasena": "admin123",
+      "ruta_rtsp": "/stream1",
+      "deteccion_movimiento": true,
+      "grabacion_automatica": true
+    },
+    {
+      "id": "cam3",
+      "nombre": "Estacionamiento",
+      "ip": "192.168.1.103",
+      "puerto": 554,
+      "usuario": "admin",
+      "contrasena": "admin123",
+      "ruta_rtsp": "/stream1",
+      "deteccion_movimiento": false,
+      "grabacion_automatica": false
+    }
+  ]
+}

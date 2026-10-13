@@ -1,0 +1,5 @@
+opencv-python
+PyQt5
+PyQt5-Qt5
+numpy
+ultralytics

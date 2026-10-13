@@ -1,0 +1,28 @@
+{
+  "camaras": [
+    {
+      "id": "cam1",
+      "nombre": "Entrada Principal",
+      "ip": "192.168.1.101",
+      "puerto": 554,
+      "usuario": "admin",
+      "contrasena": "admin123",
+      "ruta_rtsp": "/stream1",
+      "deteccion_movimiento": true,
+      "deteccion_personas": true,
+      "grabacion_automatica": true
+    },
+    {
+      "id": "cam2",
+      "nombre": "Patio Trasero",
+      "ip": "192.168.1.102",
+      "puerto": 554,
+      "usuario": "admin",
+      "contrasena": "admin123",
+      "ruta_rtsp": "/stream1",
+      "deteccion_movimiento": true,
+      "deteccion_personas": false,
+      "grabacion_automatica": false
+    }
+  ]
+}
