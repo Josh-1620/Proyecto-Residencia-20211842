@@ -81,5 +81,3 @@ Hermano-OJO/
 ```
 
 `ultralytics` (YOLOv8) usa licencia AGPL-3.0, ojo con eso si se va a distribuir.
-
-Autor: (tu nombre)
