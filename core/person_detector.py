@@ -72,11 +72,23 @@ class DetectorPersonas:
 
 
 # ---------- Un solo modelo para todas las camaras ----------
-# Cargar el modelo gasta memoria, asi que se carga una vez y todas las
-# camaras lo comparten.
+# Cargar el modelo gasta memoria y tarda varios segundos (sobre todo la
+# primera vez). Por eso se carga UNA sola vez, en segundo plano, y todas
+# las camaras lo comparten. Mientras carga, las camaras ya muestran su video.
 _detector = None
 _error_de_carga = None
-_candado_carga = threading.Lock()
+_hilo_carga = None
+_candado = threading.Lock() #Protege 3 variables de arriba
+
+
+def _cargar_modelo() -> None:
+    global _detector, _error_de_carga
+    try:
+        detector = DetectorPersonas()
+        with _candado:
+            _detector = detector
+    except Exception as error:
+        log.error("No se pudo cargar el modelo IA: %s", error)
 
 
 def obtener_detector() -> DetectorPersonas:
