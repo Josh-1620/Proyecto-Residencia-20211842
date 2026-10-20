@@ -15,8 +15,17 @@ from PyQt5.QtGui import QImage
 
 from core.capturas import guardar_captura
 from core.motion_detector import MotionDetector
-from core.person_detector import HiloDeteccion, dibujar_personas, obtener_detector
+from core.person_detector import (
+    COLOR_AMARILLO,
+    COLOR_ROJO,
+    COLOR_VERDE,
+    HiloDeteccion,
+    detector_listo,
+    dibujar_personas,
+    iniciar_carga_ia,
+)
 from core.recorder import Recorder
+from core.zona import dibujar_zona, separar_personas, validar_zona
 from utils.config_loader import obtener_fuente
 from utils.logger import obtener_logger
 
@@ -66,6 +75,10 @@ class CameraStream(QThread):
     # ---------- Cosas que la ventana puede pedirle a la camara ----------
     def establecer_grabacion_manual(self, activo: bool) -> None:
         self._grabar_manual = activo
+
+    def establecer_zona(self, puntos) -> None:
+        """Cambia la zona mientras la camara sigue funcionando (lista vacia = sin Zona)"""
+        self._zona = validar_zona(puntos)
 
     def solicitar_detencion(self) -> None:
         self._ejecutando = False
