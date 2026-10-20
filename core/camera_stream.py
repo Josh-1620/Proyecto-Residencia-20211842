@@ -199,7 +199,14 @@ class CameraStream(QThread):
 
                 ahora = time.monotonic()
 
+                 # Si la IA todavia esta cargando, se revisa si ya termino
+                if self._usar_personas and self._hilo_ia is None:
+                    self._revisar_ia()
+
                 # --- Movimiento ---
+                 # (se crea aqui porque puede hacer falta mas tarde, si la IA falla)
+                if self._usar_movimiento and detector_movimiento is None:
+                    detector_movimiento = MotionDetector()
                 if detector_movimiento is not None:
                     if detector_movimiento.detectar(frame):
                         ultimo_movimiento = ahora
@@ -215,30 +222,47 @@ class CameraStream(QThread):
                             log.info("[%s] Movimiento detectado", self.nombre)
 
                 # --- Personas (con YOLOv8) ---
-                personas = []
+                dentro = []
+                fuerza = []
+                zona = self._zona
                 if self._hilo_ia is not None:
-                    # Cada cierto tiempo se le manda una imagen a la IA...
+                    #Cada cierto tiempo se la mandala imagen a la IA
                     if ahora - ultimo_envio_ia >= self.SEGUNDOS_ENTRE_ANALISIS_IA:
-                        ultimo_envio_ia = ahora
+                        ultimo_envio_ia =ahora
                         self._hilo_ia.enviar(frame)
 
-                    # ...y se usa lo ultimo que haya respondido.
-                    personas, momento = self._hilo_ia.ultimo_resultado()
+                    #lo ultimo que haya respondido
+                    personas, momento = self._hilo_ia.ultimi_resultado()
                     if ahora - momento > self.SEGUNDOS_RESULTADO_VALIDO:
                         personas = []
+                    if zona:
+                        alto_frame, ancho_frame = frame.shape[:2]
+                        dentro, fuera = separar_personas(personas ,zona, ancho_frame, alto_frame)
 
-                    if len(personas) > 0:
+                    else:
+                        dentro = personas
+
+                    if len(dentro) > 0:
                         ultima_persona = ahora
 
-                    if len(personas) != personas_actuales:
+                    if len(dentro) != personas_actuales:
                         # Si antes no habia nadie y ahora si, se avisa y se toma una foto
                         if personas_actuales == 0:
-                            log.info("[%s] Persona detectada", self.nombre)
+                            if zona:
+                                log.info("[%s] Intruso dentro de la zona", self.nombre)
+                            else:
+                                log.info("[%s] Persona detectada", self.nombre)
                             if ahora - ultima_captura >= self.SEGUNDOS_ENTRE_CAPTURAS:
                                 ultima_captura = ahora
-                                guardar_captura(dibujar_personas(frame, personas), self.id_camara)
-                        personas_actuales = len(personas)
+                                guardar_captura(
+                                    self._anotar(frame, dentro, fuera, zona, con_zona=True),
+                                    self.id_camara,
+                                )
+                        personas_actuales = len(dentro)
                         self.personas_cambiadas.emit(personas_actuales)
+
+                    
+               
 
                 # --- Grabacion (con el boton o automatica) ---
                 evento = ultima_persona if self._usar_personas else ultimo_movimiento
