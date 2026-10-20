@@ -99,20 +99,27 @@ def iniciar_carga_ia() -> None:
             _hilo_carga = threading.Thread(target=_cargar_modelo, daemon=True, name="carga-ia")
             _hilo_carga.start()
 
+
+
+def detector_listo():
+    """
+    Devuelve (detector, error):
+        - (detector, None): el modelo ya esta listo para usarse.
+        - (None, "texto"):  la carga fallo.
+     - (None, None):     todavia esta cargando.
+    
+    """
+    with _candado:
+        return _detector, _error_de_carga
+
 def obtener_detector() -> DetectorPersonas:
-    """Devuelve el detector compartido. Lo carga la primera vez que se pide."""
-    global _detector, _error_de_carga
-    with _candado_carga:
-        if _error_de_carga is not None:
-            raise RuntimeError(_error_de_carga)
-        if _detector is None:
-            try:
-                _detector = DetectorPersonas()
-            except Exception as error:
-                # Se recuerda el fallo para no intentar cargar una y otra vez.
-                _error_de_carga = str(error)
-                raise
-        return _detector
+    """Version que SI espera hasta que el modelo cargue (util para pruebas y scripts)."""
+    iniciar_carga_ia()
+    _hilo_carga.join()
+    detector, error = detector_listo()
+    if error is not None:
+        raise RuntimeError(error)
+    return detector
 
 
 class HiloDeteccion(threading.Thread):
@@ -174,6 +181,11 @@ class HiloDeteccion(threading.Thread):
             with self._candado:
                 self._personas = personas
                 self._momento = time.monotonic()
+
+# Colores de los cuadros (en formato BGR)
+COLOR_VERDE = (0, 200, 0)      # persona normal (camara sin zona)
+COLOR_ROJO = (40, 40, 230)     # persona dentro de la zona (alerta)
+COLOR_AMARILLO = (0, 200, 255)  # persona fuera de la zona (solo informativo)
 
 
 def dibujar_personas(frame, personas: list):
