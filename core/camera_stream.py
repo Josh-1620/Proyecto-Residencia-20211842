@@ -89,7 +89,8 @@ class CameraStream(QThread):
 
     # ---------- Trabajo principal ----------
     def run(self):
-        self._preparar_ia()
+        if self._usar_personas:
+            iniciar_carga_ia() # empieza a cargar el modelo, pero no se espera
         try:
             while self._ejecutando:
                 captura = self._abrir_captura()
@@ -114,21 +115,30 @@ class CameraStream(QThread):
             if self._hilo_ia is not None:
                 self._hilo_ia.detener()
 
-    def _preparar_ia(self):
-        """Carga el modelo de personas (puede tardar la primera vez porque se descarga)."""
-        if not self._usar_personas:
-            return
-        try:
-            detector = obtener_detector()
+    def _revisar_ia(self):
+        """
+        Mira si el modelo de personas ya termino de cargar. Mientras carga, la
+        camara sigue mostrando video normal; cuando esta listo, empieza a analizar.
+        """
+
+        detector, error = detector_listo()
+        if detector is not None:
             self._hilo_ia = HiloDeteccion(detector, self.nombre)
             self._hilo_ia.start()
-        except Exception as error:
+            log.info("[%s] Deteccion de personas activa", self.nombre)
+        elif error is not None:
             # Si falla, la camara sigue funcionando, solo que sin detectar personas.
+            # La grabacion automatica pasa a usar el movimiento en su lugar.
             log.error(
                 "[%s] No se pudo activar la deteccion de personas: %s",
                 self.nombre, error,
             )
             self._usar_personas = False
+            if self._grabacion_automatica:
+                self._usar_movimiento = True
+                log.warning("[%s] Se usara el movimiento para grabar", self.nombre)
+
+
 
     def _abrir_captura(self):
         try:
