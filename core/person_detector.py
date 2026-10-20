@@ -188,7 +188,7 @@ COLOR_ROJO = (40, 40, 230)     # persona dentro de la zona (alerta)
 COLOR_AMARILLO = (0, 200, 255)  # persona fuera de la zona (solo informativo)
 
 
-def dibujar_personas(frame, personas: list):
+def dibujar_personas(frame, personas: list, color=COLOR_VERDE, rotulo: str = "Persona"):
     """Devuelve una COPIA del frame con un cuadro y un texto sobre cada persona."""
     if not personas:
         return frame
@@ -197,6 +197,8 @@ def dibujar_personas(frame, personas: list):
     ancho = imagen.shape[1]
     grosor = max(2, ancho // 300)          # cuadros mas gruesos en imagenes grandes
     tamano_texto = max(0.5, ancho / 1400)
+
+    color_texto = (255, 255, 255) if color == COLOR_ROJO else (0, 0, 0)
 
     for x1, y1, x2, y2, seguridad in personas:
         color = (0, 200, 0)  # verde (en formato BGR)
