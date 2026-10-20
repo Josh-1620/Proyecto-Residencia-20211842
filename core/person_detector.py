@@ -90,6 +90,14 @@ def _cargar_modelo() -> None:
     except Exception as error:
         log.error("No se pudo cargar el modelo IA: %s", error)
 
+def iniciar_carga_ia() -> None:
+    """Empieza a cargar el modelo sin hacer esperar a nadie."""
+    global _hilo_carga
+    with _candado:
+        if _hilo_carga is None:
+            #daemon=true: si la aplicacion se cierra no se queda esperando
+            _hilo_carga = threading.Thread(target=_cargar_modelo, daemon=True, name="carga-ia")
+            _hilo_carga.start()
 
 def obtener_detector() -> DetectorPersonas:
     """Devuelve el detector compartido. Lo carga la primera vez que se pide."""
