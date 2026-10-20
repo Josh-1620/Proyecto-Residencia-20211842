@@ -6,16 +6,117 @@ MUESTRA lo que le llega (imagen, si esta conectada, si hay movimiento,
 si hay personas, si esta grabando) y AVISA cuando se presiona el boton Grabar.
 La ventana principal es quien conecta este recuadro con su camara.
 """
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import Qt, QPointF, QRectF, pyqtSignal
+from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap, QPolygonF
 from PyQt5.QtWidgets import (
     QFrame,
     QLabel,
+    QMenu,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
     QSizePolicy,
+    QWidget,
 )
+
+from core.zona import validar_zona
+
+COLOR_ZONA = QColor(255, 77, 77)       # rojo: zona ya guardada
+COLOR_EDICION = QColor(79, 209, 197)   # turquesa: zona que se esta dibujando
+
+
+class EtiquetaVideo(QLabel):
+    """
+    La zona donde se ve el video. Ademas de mostrar la imagen:
+      - pinta la zona de vigilancia encima del video
+      - cuando se esta dibujando una zona, avisa en que parte del video
+        se hizo clic (con numeros de 0 a 1, no en pixeles)
+    """
+    punto_agregado = pyqtSignal(float, float)  # clic izquierdo: x, y entre 0 y 1
+    punto_quitado = pyqtSignal()               # clic derecho: deshacer el ultimo punto
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.zona = []             # zona guardada
+        self.puntos_edicion = []   # zona que se esta dibujando ahora
+        self.editando = False
+
+    def hay_imagen(self) -> bool:
+        pixmap = self.pixmap()
+        return pixmap is not None and not pixmap.isNull()
+
+    def rect_imagen(self):
+        """
+        Devuelve el rectangulo que ocupa la imagen dentro de la etiqueta.
+        La imagen se centra y deja franjas negras a los lados (o arriba y
+        abajo) cuando su forma no coincide con la de la etiqueta; los clics
+        en esas franjas no cuentan, y la zona se mide solo sobre la imagen.
+        """
+        pixmap = self.pixmap()
+        if pixmap is None or pixmap.isNull():
+            return None
+        caja = self.contentsRect()
+        x = caja.x() + (caja.width() - pixmap.width()) / 2
+        y = caja.y() + (caja.height() - pixmap.height()) / 2
+        return QRectF(x, y, pixmap.width(), pixmap.height())
+
+    def mousePressEvent(self, evento):
+        if not self.editando:
+            super().mousePressEvent(evento)
+            return
+
+        if evento.button() == Qt.RightButton:
+            self.punto_quitado.emit()
+            return
+
+        if evento.button() == Qt.LeftButton:
+            rect = self.rect_imagen()
+            if rect is None:
+                return
+            posicion = QPointF(evento.pos())
+            if not rect.contains(posicion):
+                return  # clic en la franja negra: se ignora
+            self.punto_agregado.emit(
+                (posicion.x() - rect.x()) / rect.width(),
+                (posicion.y() - rect.y()) / rect.height(),
+            )
+
+    def paintEvent(self, evento):
+        super().paintEvent(evento)  # primero se pinta la imagen normal
+
+        rect = self.rect_imagen()
+        puntos = self.puntos_edicion if self.editando else self.zona
+        if rect is None or not puntos:
+            return
+
+        color = COLOR_EDICION if self.editando else COLOR_ZONA
+        en_pantalla = [
+            QPointF(rect.x() + px * rect.width(), rect.y() + py * rect.height())
+            for px, py in puntos
+        ]
+
+        pintor = QPainter(self)
+        pintor.setRenderHint(QPainter.Antialiasing)
+
+        if len(en_pantalla) >= 3:
+            relleno = QColor(color)
+            relleno.setAlpha(55)  # transparente, para ver el video debajo
+            pintor.setBrush(relleno)
+            pintor.setPen(QPen(color, 2))
+            pintor.drawPolygon(QPolygonF(en_pantalla))
+        elif len(en_pantalla) == 2:
+            pintor.setPen(QPen(color, 2))
+            pintor.drawLine(en_pantalla[0], en_pantalla[1])
+
+        if self.editando:
+            # Un circulo en cada esquina, para ver donde se hizo clic
+            pintor.setPen(QPen(color, 2))
+            pintor.setBrush(color)
+            for punto in en_pantalla:
+                pintor.drawEllipse(punto, 4, 4)
+
+        pintor.end()
 
 
 class CameraWidget(QFrame):
