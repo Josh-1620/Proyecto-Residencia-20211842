@@ -309,9 +309,27 @@ class CameraStream(QThread):
         while self._ejecutando and time.monotonic() < fin:
             self.msleep(100)
 
-    def _a_qimage(self, frame, personas) -> QImage:
+    def _anotar(self, frame, dentro, fuera, zona, con_zona: bool):
+        """
+        Devuelve la imagen con los cuadros de las personas dibujados.
+          - Camara con zona: rojo "Intruso" (adentro) y amarillo "Persona" (afuera).
+          - Camara sin zona: verde "Persona".
+        La zona en si solo se dibuja si con_zona es True. En pantalla no se
+        dibuja aqui porque la ventana la pinta por su cuenta (asi se puede editar).
+        """
+        imagen = frame
+        if zona:
+            if con_zona:
+                imagen = dibujar_zona(imagen, zona)
+            imagen = dibujar_personas(imagen, fuera, COLOR_AMARILLO, "Persona")
+            imagen = dibujar_personas(imagen, dentro, COLOR_ROJO, "Intruso")
+        else:
+            imagen = dibujar_personas(imagen, dentro, COLOR_VERDE, "Persona")
+        return imagen
+
+    def _a_qimage(self, frame, dentro, fuera, zona) -> QImage:
         """Convierte la imagen de OpenCV a una imagen que la ventana pueda mostrar."""
-        frame = dibujar_personas(frame, personas)
+        frame = self._anotar(frame, dentro, fuera, zona, con_zona=False)
 
         alto, ancho = frame.shape[:2]
         if ancho > self.ANCHO_MAXIMO_PANTALLA:
