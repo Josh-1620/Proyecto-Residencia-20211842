@@ -122,10 +122,15 @@ class EtiquetaVideo(QLabel):
 class CameraWidget(QFrame):
     # Aviso que se manda cuando el usuario presiona o suelta el boton Grabar
     grabacion_solicitada = pyqtSignal(bool)
+     # Aviso con la zona nueva (lista de puntos). Si la lista esta vacia, se borro la zona.
+    zona_guardada = pyqtSignal(list)
 
     def __init__(self, camara: dict, parent=None):
         super().__init__(parent)
         self.camara = camara
+        self._zona = []
+        self._cantidad_personas = 0
+        self._edicion_permitida = False
 
         self.setObjectName("CameraWidget")
         self.setFrameShape(QFrame.StyledPanel)
@@ -172,6 +177,34 @@ class CameraWidget(QFrame):
         # Sin esto, una imagen grande no deja achicar la ventana.
         self.lbl_video.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.lbl_video.setMinimumSize(280, 160)
+
+
+        # --- Barra para dibujar la zona (solo se ve mientras se dibuja) ---
+        self.barra_edicion = QWidget()
+        self.barra_edicion.setObjectName("BarraEdicion")
+        layout_edicion = QVBoxLayout(self.barra_edicion)
+        layout_edicion.setContentsMargins(0, 0, 0, 0)
+        layout_edicion.setSpacing(2)
+
+        self.lbl_ayuda_zona = QLabel(
+            "Haz clic en el video para marcar las esquinas de la zona. "
+            "Clic derecho: quitar el último punto."
+        )
+        self.lbl_ayuda_zona.setObjectName("AyudaZona")
+        self.lbl_ayuda_zona.setWordWrap(True)
+
+        fila_botones = QHBoxLayout()
+        self.btn_guardar_zona = QPushButton("Guardar zona")
+        self.btn_guardar_zona.clicked.connect(self._guardar_edicion)
+        self.btn_cancelar_zona = QPushButton("Cancelar")
+        self.btn_cancelar_zona.clicked.connect(self._cancelar_edicion)
+        fila_botones.addStretch()
+        fila_botones.addWidget(self.btn_guardar_zona)
+        fila_botones.addWidget(self.btn_cancelar_zona)
+
+        layout_edicion.addWidget(self.lbl_ayuda_zona)
+        layout_edicion.addLayout(fila_botones)
+        self.barra_edicion.setVisible(False)
 
         # --- Parte de abajo: estado y boton ---
         pie = QHBoxLayout()
