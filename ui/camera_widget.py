@@ -208,12 +208,25 @@ class CameraWidget(QFrame):
 
         # --- Parte de abajo: estado y boton ---
         pie = QHBoxLayout()
-        self.btn_grabar = QPushButton("Grabar")
-        self.btn_grabar.setCheckable(True)
-        self.btn_grabar.clicked.connect(self._alternar_grabacion)
 
         self.lbl_estado = QLabel("Desconectada")
         self.lbl_estado.setObjectName("EstadoConexion")
+
+        self.btn_zona = QPushButton("zona")
+        menu_zona = QMenu(self.btn_zona)
+        self.accion_dibujar_zona = menu_zona.addAction("Dibujar zona nueva")
+        self.accion_dibujar_zona.triggered.connect(self._iniciar_edicion)
+        self.accion_borrar_zona = menu_zona.addAction("Borrar zona")
+        self.accion_borrar_zona.triggered.connect(self._borrar_zona)
+        menu_zona.aboutToShow.connect(self._actualizar_menu_zona)
+        self.btn_zona.setMenu(menu_zona)
+        self.btn_zona.setEnabled(False)  # se habilita desde permitir_edicion_zona()
+
+
+    
+        self.btn_grabar = QPushButton("Grabar")
+        self.btn_grabar.setCheckable(True)
+        self.btn_grabar.clicked.connect(self._alternar_grabacion)
 
         pie.addWidget(self.lbl_estado)
         pie.addStretch()
