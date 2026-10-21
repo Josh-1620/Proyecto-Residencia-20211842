@@ -230,10 +230,13 @@ class CameraWidget(QFrame):
 
         pie.addWidget(self.lbl_estado)
         pie.addStretch()
+        pie.addWidget(self.btn_zona)
         pie.addWidget(self.btn_grabar)
 
         layout_principal.addLayout(encabezado)
         layout_principal.addWidget(self.lbl_video, stretch=1)
+        layout_principal.addWidget(self.barra_edicion)
+
         layout_principal.addLayout(pie)
 
     def _mostrar_placeholder(self, texto: str):
@@ -256,6 +259,7 @@ class CameraWidget(QFrame):
     def marcar_conectada(self, conectada: bool):
         self.lbl_estado.setText("Conectada" if conectada else "Desconectada")
         if not conectada:
+            self._cancelar_edicion()  # sin video no se puede seguir dibujando
             self._mostrar_placeholder("Sin señal\nReintentando conexión...")
             self.marcar_movimiento(False)
             self.marcar_personas(0)
@@ -264,13 +268,99 @@ class CameraWidget(QFrame):
         self.lbl_indicador_movimiento.setVisible(detectado)
 
     def marcar_personas(self, cantidad: int):
-        """Muestra cuantas personas se ven (y se oculta si no hay ninguna)."""
-        self.lbl_indicador_personas.setText(f"Personas: {cantidad}")
+        """
+        Muestra cuantas personas cuentan. Si la camara tiene zona, son solo las
+        que estan dentro de ella (en rojo, porque es una alerta). Se oculta si no hay ninguna.
+        """
+        self._cantidad_personas = cantidad
+        if self._zona:
+            self.lbl_indicador_personas.setText(f"En zona: {cantidad}")
+            self.lbl_indicador_personas.setStyleSheet("color: #ff6b6b;")
+        else:
+            self.lbl_indicador_personas.setText(f"Personas: {cantidad}")
+            self.lbl_indicador_personas.setStyleSheet("")  # vuelve al color normal
         self.lbl_indicador_personas.setVisible(cantidad > 0)
 
     def marcar_grabando(self, grabando: bool):
         """Muestra REC cuando realmente se esta grabando (con el boton o solo)."""
         self.lbl_indicador_rec.setVisible(grabando)
+
+    # ---------- Zona de vigilancia ----------
+    def establecer_zona(self, puntos):
+        """Pone la zona guardada (lista vacia o None = sin zona)."""
+        self._zona = validar_zona(puntos)
+        self.lbl_video.zona = self._zona
+        self.lbl_video.update()
+        self.marcar_personas(self._cantidad_personas)  # actualiza el texto del contador
+
+    def permitir_edicion_zona(self, permitido: bool, motivo: str = ""):
+        """Activa o desactiva el boton Zona. Si no se permite, 'motivo' se ve al pasar el mouse."""
+        self._edicion_permitida = permitido
+        self.btn_zona.setEnabled(permitido)
+        self.btn_zona.setToolTip(
+            "Dibujar o borrar la zona de vigilancia" if permitido else motivo
+        )
+
+    def _actualizar_menu_zona(self):
+        # "Borrar zona" solo tiene sentido si ya hay una
+        self.accion_borrar_zona.setEnabled(bool(self._zona))
+
+    def _iniciar_edicion(self):
+        if not self.lbl_video.hay_imagen():
+            QMessageBox.information(
+                self,
+                "Zona",
+                "La cámara debe estar conectada y mostrando video para poder dibujar la zona.",
+            )
+            return
+        self.lbl_video.editando = True
+        self.lbl_video.puntos_edicion = []
+        self.lbl_video.setCursor(Qt.CrossCursor)
+        self.barra_edicion.setVisible(True)
+        self.btn_guardar_zona.setEnabled(False)  # hacen falta 3 puntos como minimo
+        self.btn_zona.setEnabled(False)
+        self.lbl_video.update()
+
+    def _terminar_edicion(self):
+        self.lbl_video.editando = False
+        self.lbl_video.puntos_edicion = []
+        self.lbl_video.unsetCursor()
+        self.barra_edicion.setVisible(False)
+        self.btn_zona.setEnabled(self._edicion_permitida)
+        self.lbl_video.update()
+
+    def _agregar_punto(self, x: float, y: float):
+        self.lbl_video.puntos_edicion.append([x, y])
+        self.btn_guardar_zona.setEnabled(len(self.lbl_video.puntos_edicion) >= 3)
+        self.lbl_video.update()
+
+    def _quitar_punto(self):
+        if self.lbl_video.puntos_edicion:
+            self.lbl_video.puntos_edicion.pop()
+        self.btn_guardar_zona.setEnabled(len(self.lbl_video.puntos_edicion) >= 3)
+        self.lbl_video.update()
+
+    def _guardar_edicion(self):
+        # Se redondea a 4 decimales para que el archivo de configuracion quede ordenado
+        puntos = [[round(x, 4), round(y, 4)] for x, y in self.lbl_video.puntos_edicion]
+        if len(puntos) < 3:
+            return
+        self.establecer_zona(puntos)
+        self._terminar_edicion()
+        self.zona_guardada.emit(self._zona)
+
+    def _cancelar_edicion(self):
+        if self.lbl_video.editando:
+            self._terminar_edicion()
+
+    def _borrar_zona(self):
+        respuesta = QMessageBox.question(
+            self, "Borrar zona",
+            "¿Borrar la zona de esta cámara?\nDespués alertará por cualquier persona que aparezca.",
+        )
+        if respuesta == QMessageBox.Yes:
+            self.establecer_zona([])
+            self.zona_guardada.emit([])
 
     # ---------- Lo que hace el usuario ----------
     def _alternar_grabacion(self, activo: bool):
