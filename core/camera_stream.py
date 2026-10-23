@@ -37,7 +37,7 @@ class CameraStream(QThread):
     frame_listo = pyqtSignal(QImage)        # llego una imagen nueva
     conexion_cambiada = pyqtSignal(bool)    # se conecto o se desconecto
     movimiento_cambiado = pyqtSignal(bool)  # empezo o termino un movimiento
-    personas_cambiadas = pyqtSignal(int)    # cuantas personas se ven ahora
+    personas_cambiadas = pyqtSignal(int)    # cuantas personas cuentan ahora (las de la zona, o todas si no hay zona)
     grabando_cambiado = pyqtSignal(bool)    # empezo o termino una grabacion
 
     SEGUNDOS_ENTRE_REINTENTOS = 3
@@ -68,6 +68,10 @@ class CameraStream(QThread):
             self._grabacion_automatica and not self._usar_personas
         )
 
+        # Zona de vigilancia (opcional). Si existe, solo las personas dentro
+        # de ella cuentan como alerta.
+        self._zona = validar_zona(camara.get("zona"))
+
         self._ejecutando = True
         self._grabar_manual = False
         self._hilo_ia = None
@@ -77,7 +81,7 @@ class CameraStream(QThread):
         self._grabar_manual = activo
 
     def establecer_zona(self, puntos) -> None:
-        """Cambia la zona mientras la camara sigue funcionando (lista vacia = sin Zona)"""
+        """Cambia la zona mientras la camara sigue funcionando (lista vacia = sin zona)."""
         self._zona = validar_zona(puntos)
 
     def solicitar_detencion(self) -> None:
@@ -90,7 +94,7 @@ class CameraStream(QThread):
     # ---------- Trabajo principal ----------
     def run(self):
         if self._usar_personas:
-            iniciar_carga_ia() # empieza a cargar el modelo, pero no se espera
+            iniciar_carga_ia()  # empieza a cargar el modelo, pero no se espera: el video sale ya
         try:
             while self._ejecutando:
                 captura = self._abrir_captura()
@@ -120,7 +124,6 @@ class CameraStream(QThread):
         Mira si el modelo de personas ya termino de cargar. Mientras carga, la
         camara sigue mostrando video normal; cuando esta listo, empieza a analizar.
         """
-
         detector, error = detector_listo()
         if detector is not None:
             self._hilo_ia = HiloDeteccion(detector, self.nombre)
@@ -137,8 +140,6 @@ class CameraStream(QThread):
             if self._grabacion_automatica:
                 self._usar_movimiento = True
                 log.warning("[%s] Se usara el movimiento para grabar", self.nombre)
-
-
 
     def _abrir_captura(self):
         try:
@@ -168,7 +169,7 @@ class CameraStream(QThread):
             fps = 15.0  # muchas camaras no informan sus FPS, se usa un valor normal
 
         grabador = Recorder(self.id_camara, fps)
-        detector_movimiento = MotionDetector() if self._usar_movimiento else None
+        detector_movimiento = None
 
         intervalo_pantalla = 1.0 / self.FPS_PANTALLA
         # Un archivo de video se lee muy rapido; se frena para que se vea a
@@ -199,12 +200,12 @@ class CameraStream(QThread):
 
                 ahora = time.monotonic()
 
-                 # Si la IA todavia esta cargando, se revisa si ya termino
+                # Si la IA todavia esta cargando, se revisa si ya termino
                 if self._usar_personas and self._hilo_ia is None:
                     self._revisar_ia()
 
                 # --- Movimiento ---
-                 # (se crea aqui porque puede hacer falta mas tarde, si la IA falla)
+                # (se crea aqui porque puede hacer falta mas tarde, si la IA falla)
                 if self._usar_movimiento and detector_movimiento is None:
                     detector_movimiento = MotionDetector()
                 if detector_movimiento is not None:
@@ -222,23 +223,23 @@ class CameraStream(QThread):
                             log.info("[%s] Movimiento detectado", self.nombre)
 
                 # --- Personas (con YOLOv8) ---
-                dentro = []
-                fuerza = []
+                dentro = []   # personas que cuentan (dentro de la zona, o todas si no hay zona)
+                fuera = []    # personas que se ven pero estan fuera de la zona
                 zona = self._zona
                 if self._hilo_ia is not None:
-                    #Cada cierto tiempo se la mandala imagen a la IA
+                    # Cada cierto tiempo se le manda una imagen a la IA...
                     if ahora - ultimo_envio_ia >= self.SEGUNDOS_ENTRE_ANALISIS_IA:
-                        ultimo_envio_ia =ahora
+                        ultimo_envio_ia = ahora
                         self._hilo_ia.enviar(frame)
 
-                    #lo ultimo que haya respondido
-                    personas, momento = self._hilo_ia.ultimi_resultado()
+                    # ...y se usa lo ultimo que haya respondido.
+                    personas, momento = self._hilo_ia.ultimo_resultado()
                     if ahora - momento > self.SEGUNDOS_RESULTADO_VALIDO:
                         personas = []
+
                     if zona:
                         alto_frame, ancho_frame = frame.shape[:2]
-                        dentro, fuera = separar_personas(personas ,zona, ancho_frame, alto_frame)
-
+                        dentro, fuera = separar_personas(personas, zona, ancho_frame, alto_frame)
                     else:
                         dentro = personas
 
@@ -260,9 +261,6 @@ class CameraStream(QThread):
                                 )
                         personas_actuales = len(dentro)
                         self.personas_cambiadas.emit(personas_actuales)
-
-                    
-               
 
                 # --- Grabacion (con el boton o automatica) ---
                 evento = ultima_persona if self._usar_personas else ultimo_movimiento
@@ -286,7 +284,7 @@ class CameraStream(QThread):
                 # --- Mandar la imagen a la pantalla (con los cuadros de personas) ---
                 if ahora - ultimo_envio_pantalla >= intervalo_pantalla:
                     ultimo_envio_pantalla = ahora
-                    self.frame_listo.emit(self._a_qimage(frame, personas))
+                    self.frame_listo.emit(self._a_qimage(frame, dentro, fuera, zona))
 
                 if intervalo_archivo:
                     restante = intervalo_archivo - (time.monotonic() - inicio_ciclo)

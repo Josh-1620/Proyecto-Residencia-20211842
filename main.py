@@ -13,6 +13,12 @@ QMainWindow, QWidget, QDialog {
     color: #e6e6e6;
     font-family: "Segoe UI", sans-serif;
 }
+QLabel {
+    background-color: transparent;
+}
+QWidget#BarraEdicion {
+    background-color: transparent;
+}
 QToolBar {
     background-color: #1b1e23;
     border: none;
@@ -66,6 +72,23 @@ QLabel#IndicadorPersonas {
 QLabel#EstadoConexion {
     color: #888;
     font-size: 11px;
+}
+QLabel#AyudaZona {
+    color: #4fd1c5;
+    font-size: 11px;
+}
+QMenu {
+    background-color: #1f2329;
+    border: 1px solid #2c3038;
+}
+QMenu::item {
+    padding: 6px 22px;
+}
+QMenu::item:selected {
+    background-color: #33383f;
+}
+QMenu::item:disabled {
+    color: #555;
 }
 QLineEdit, QComboBox, QDateEdit {
     background-color: #1f2329;

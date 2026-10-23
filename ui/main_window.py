@@ -24,7 +24,7 @@ from core.auth import tiene_permiso
 from core.camera_stream import CameraStream
 from ui.camera_widget import CameraWidget
 from ui.recordings_tab import RecordingsTab
-from utils.config_loader import cargar_camaras
+from utils.config_loader import cargar_camaras, guardar_camaras
 
 
 class MainWindow(QMainWindow):
@@ -82,8 +82,21 @@ class MainWindow(QMainWindow):
         camaras = cargar_camaras()
         columnas = max(1, math.ceil(math.sqrt(len(camaras)))) if camaras else 1
 
+        # Solo el administrador puede dibujar zonas, y solo en camaras con IA de personas
+        es_admin = tiene_permiso(self.usuario_actual, "gestionar_camaras")
+
         for indice, camara in enumerate(camaras):
             widget = CameraWidget(camara)
+            widget.establecer_zona(camara.get("zona"))
+
+            if not es_admin:
+                motivo = "Solo el administrador puede editar la zona."
+            elif not camara.get("deteccion_personas", False):
+                motivo = "Esta cámara no tiene activada la detección de personas (deteccion_personas)."
+            else:
+                motivo = ""
+            widget.permitir_edicion_zona(motivo == "", motivo)
+
             fila, col = divmod(indice, columnas)
             layout_grid.addWidget(widget, fila, col)
             self.widgets_camaras[camara["id"]] = widget
@@ -130,6 +143,10 @@ class MainWindow(QMainWindow):
 
             # Del boton Grabar del recuadro hacia la camara
             widget.grabacion_solicitada.connect(stream.establecer_grabacion_manual)
+            # Cuando se dibuja o borra una zona, se guarda y la camara la usa de inmediato
+            widget.zona_guardada.connect(
+                lambda puntos, i=id_camara: self._guardar_zona(i, puntos)
+            )
 
             self.streams[id_camara] = stream
 
@@ -142,6 +159,30 @@ class MainWindow(QMainWindow):
         else:
             self._conectadas.discard(id_camara)
         self._actualizar_resumen()
+
+    
+    def _guardar_zona(self, id_camara: str, puntos: list):
+        """Guarda la zona en cameras.json y se la pasa a la camara que esta funcionando."""
+        # Primero se le avisa a la camara, para que la use ya mismo
+        self.streams[id_camara].establecer_zona(puntos)
+
+        try:
+            camaras = cargar_camaras()
+            for camara in camaras:
+                if camara["id"] == id_camara:
+                    if puntos:
+                        camara["zona"] = puntos
+                    else:
+                        camara.pop("zona", None)  # sin puntos = se borro la zona
+            guardar_camaras(camaras)
+        except OSError as error:
+            self.statusBar().showMessage(
+                f"La zona funciona, pero no se pudo guardar en el archivo: {error}", 8000
+            )
+            return
+
+        mensaje = "Zona guardada." if puntos else "Zona borrada."
+        self.statusBar().showMessage(mensaje, 4000)
 
     def _al_cambiar_pestana(self, indice: int):
         if self.pestanas.widget(indice) is self.tab_grabaciones:

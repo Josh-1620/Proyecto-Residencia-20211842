@@ -61,3 +61,24 @@ def dibujar_zona(frame , zona: list):
     imagen = cv2.addWeighted(capa, 0.25,frame, 0.75, 0)
     cv2.polylines(imagen, [puntos], True, COLOR_ZONA, max(2,ancho //400))
     return imagen
+
+def separar_personas(personas: list, zona: list, ancho: int, alto: int):
+    """
+    Separa las personas en dos listas: (dentro_de_la_zona, fuera_de_la_zona).
+
+    Para decidir si una persona esta dentro se usa el punto donde pisa el
+    suelo (el centro de la base de su cuadro), porque la zona representa un
+    pedazo de piso. Si se usara el centro del cuerpo, alguien parado afuera
+    pero cerca de la linea podria contarse como adentro.
+    """
+    poligono = [(x * ancho, y * alto) for x, y in zona]
+    dentro, fuera = [], []
+    for persona in personas:
+        x1, y1, x2, y2, _seguridad = persona
+        pies_x = (x1 + x2) / 2
+        pies_y = y2
+        if punto_en_zona(pies_x, pies_y, poligono):
+            dentro.append(persona)
+        else:
+            fuera.append(persona)
+    return dentro, fuera

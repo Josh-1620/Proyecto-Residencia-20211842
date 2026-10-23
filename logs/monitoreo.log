@@ -3,3 +3,74 @@
 2026-10-13 14:36:46,321 [WARNING] camera_stream: [Estacionamiento] No se pudo conectar. Reintentando...
 2026-10-13 14:36:51,342 [WARNING] camera_stream: [Celular] No se pudo conectar. Reintentando...
 2026-10-13 14:36:54,448 [WARNING] camera_stream: [Patio Trasero] No se pudo conectar. Reintentando...
+2026-10-21 20:39:24,929 [WARNING] camera_stream: [Celular] No se pudo conectar. Reintentando...
+2026-10-21 20:39:50,157 [WARNING] camera_stream: [Patio Trasero] No se pudo conectar. Reintentando...
+2026-10-23 14:07:32,399 [WARNING] camera_stream: [Patio Trasero] No se pudo conectar. Reintentando...
+2026-10-23 14:12:51,216 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:13:25,873 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:26:30,515 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:27:58,122 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:30:10,787 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:31:51,665 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:31:53,534 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:31:57,539 [INFO] person_detector: Cargando modelo YOLOv8 (la primera vez se descarga)...
+2026-10-23 14:31:57,770 [INFO] person_detector: Modelo YOLOv8 listo
+2026-10-23 14:31:57,832 [INFO] camera_stream: [Celular] Deteccion de personas activa
+2026-10-23 14:32:04,242 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:32:04,449 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/143204.mp4
+2026-10-23 14:32:07,978 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:32:34,725 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:32:34,747 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/143234.mp4
+2026-10-23 14:33:53,899 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:34:01,963 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:34:16,335 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:34:19,112 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:34:19,143 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/143419.mp4
+2026-10-23 14:34:28,718 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:38:53,181 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:38:55,218 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:39:17,928 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:39:17,946 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/143917.mp4
+2026-10-23 14:40:39,085 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:40:40,394 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:05,104 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:08,601 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:10,368 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:13,065 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:15,882 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:41:46,804 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:41:58,884 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:42:02,722 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:53:20,401 [INFO] person_detector: Cargando modelo YOLOv8 (la primera vez se descarga)...
+2026-10-23 14:53:20,567 [INFO] person_detector: Modelo YOLOv8 listo
+2026-10-23 14:53:21,011 [WARNING] camera_stream: [Celular] No se pudo conectar. Reintentando...
+2026-10-23 14:54:10,648 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:54:13,052 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:54:14,691 [INFO] person_detector: Cargando modelo YOLOv8 (la primera vez se descarga)...
+2026-10-23 14:54:14,907 [INFO] person_detector: Modelo YOLOv8 listo
+2026-10-23 14:54:14,954 [INFO] camera_stream: [Celular] Deteccion de personas activa
+2026-10-23 14:54:22,674 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:54:39,707 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:55:42,077 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:55:45,034 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:55:46,983 [INFO] person_detector: Cargando modelo YOLOv8 (la primera vez se descarga)...
+2026-10-23 14:55:47,190 [INFO] person_detector: Modelo YOLOv8 listo
+2026-10-23 14:55:47,251 [INFO] camera_stream: [Celular] Deteccion de personas activa
+2026-10-23 14:55:52,105 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:55:52,334 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/145552.mp4
+2026-10-23 14:56:41,437 [INFO] camera_stream: [Celular] Conectada
+2026-10-23 14:56:45,590 [INFO] person_detector: Cargando modelo YOLOv8 (la primera vez se descarga)...
+2026-10-23 14:56:45,808 [INFO] person_detector: Modelo YOLOv8 listo
+2026-10-23 14:56:45,820 [INFO] camera_stream: [Celular] Deteccion de personas activa
+2026-10-23 14:57:13,950 [INFO] camera_stream: [Celular] Movimiento detectado
+2026-10-23 14:57:17,644 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:17,827 [INFO] recorder: [cam1] Grabando en /home/joshua/Documentos/Hermano-OJO/storage/grabaciones/cam1/2026-10-23/145717.mp4
+2026-10-23 14:57:25,856 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:27,772 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:29,156 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:30,239 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:32,452 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:45,500 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:47,488 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:48,979 [INFO] camera_stream: [Celular] Persona detectada
+2026-10-23 14:57:51,500 [INFO] camera_stream: [Celular] Persona detectada
